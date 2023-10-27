@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TPWebServiceApiRestMovie.Models;
 
-namespace TPWebServiceApiRestMovie.Dossier
+namespace TPWebServiceApiRestMovie.Context
 {
     public class ApiContext : DbContext
     {
