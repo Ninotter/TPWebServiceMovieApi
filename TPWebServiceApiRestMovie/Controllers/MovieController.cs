@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TPWebServiceApiRestMovie.Dossier;
+using TPWebServiceApiRestMovie.Context;
 using TPWebServiceApiRestMovie.Models;
 
 namespace TPWebServiceApiRestMovie.Controllers
@@ -16,25 +16,30 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context = context;
         }
 
-        // Create/Edit
         [HttpPost]
-        public JsonResult CreateEdit(Movie movie)
+        public JsonResult Create(Movie movie)
         {
-            if(movie.Id  == 0)
-            {
-                _context.Movies.Add(movie);
-            }
-            else
-            {
-                var movieInDb = _context.Movies.Find(movie.Id);
+            _context.Movies.Add(movie);
+            _context.SaveChanges();
 
-                if(movieInDb == null) {
-                    return new JsonResult(NotFound());
-                }
+            Response.StatusCode = 200;
+            return new JsonResult(Ok(movie));
+        }
+
+        // Edit
+        [HttpPost]
+        public JsonResult Edit(Movie movie)
+        {
+            var movieInDb = _context.Movies.Find(movie.Id);
+
+            if(movieInDb == null) {
+                Response.StatusCode = 404;
+                return new JsonResult(NotFound());
             }
 
             _context.SaveChanges();
 
+            Response.StatusCode = 200;
             return new JsonResult(Ok(movie));
         }
 
@@ -46,9 +51,10 @@ namespace TPWebServiceApiRestMovie.Controllers
 
             if(result == null)
             {
+                Response.StatusCode = 404;
                 return new JsonResult(NotFound());
             }
-
+            Response.StatusCode = 200;
             return new JsonResult(Ok(result));
         }
 
@@ -60,11 +66,13 @@ namespace TPWebServiceApiRestMovie.Controllers
 
             if (result == null)
             {
+                Response.StatusCode = 404;
                 return new JsonResult(NotFound());
             }
             _context.Movies.Remove(result);
             _context.SaveChanges();
 
+            Response.StatusCode = 200;
             return new JsonResult(Ok(result));
         }
     }
