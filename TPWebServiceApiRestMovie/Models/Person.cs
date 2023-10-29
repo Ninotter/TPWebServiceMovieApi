@@ -5,9 +5,13 @@ namespace TPWebServiceApiRestMovie.Models
     public class Person
     {
         [Key]
+        [Required]
         public int Id { get; set; }
+        [Required]
         public string Surname { get; set; }
+        [Required]
         public string Name { get; set; }
+        [Required]
         public DateTime BirthDate { get; set; }
 
         public bool IsActor { get => MoviesPlayed.Any(); }
