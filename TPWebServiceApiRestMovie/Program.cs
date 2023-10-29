@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using TPWebServiceApiRestMovie.Context;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +13,21 @@ builder.Services.AddDbContext<ApiContext>(options =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "TP API Movie",
+        Description = "RESTful API to manage a movie library",
+        Contact = new OpenApiContact
+        {
+            Name = "DIDIER Nino",
+            Url = new Uri("https://github.com/Ninotter")
+        }
+    });
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml"));
+});
 
 var app = builder.Build();
 
