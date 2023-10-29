@@ -16,17 +16,52 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Creates a movie
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///        "title": "Fight Club",
+        ///        "description": "an anonymous narrator finds escape from his hollow life through an underground fighting club where men find their true selves through shared pain",
+        ///        "releaseDate" : "1999-10-27T22:19:02.649Z"
+        ///     }
+        ///
+        /// </remarks>
+        /// 
+        [ProducesResponseType(201, Type = typeof(Movie))]
+        [ProducesResponseType(400)]
+        [Produces("application/json")]
         [HttpPost]
         public JsonResult Create(Movie movie)
         {
+            //Generates a new ID if the user mistakenly specified one
+            movie.Id = 0;
             _context.Movies.Add(movie);
             _context.SaveChanges();
 
-            Response.StatusCode = 200;
+            Response.StatusCode = 201;
             return new JsonResult(Ok(movie));
         }
 
-        // Edit
+        /// <summary>
+        /// Edits a movie
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///        "id" : 1,
+        ///        "title": "Fight Club",
+        ///        "description": "an anonymous narrator finds escape from his hollow life through an underground fighting club where men find their true selves through shared pain",
+        ///        "releaseDate" : "1999-10-27T22:19:02.649Z"
+        ///     }
+        ///
+        /// </remarks>
+        [ProducesResponseType(200, Type = typeof(Movie))]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
         [HttpPost]
         public JsonResult Edit(Movie movie)
         {
@@ -37,13 +72,19 @@ namespace TPWebServiceApiRestMovie.Controllers
                 return new JsonResult(NotFound());
             }
 
+            _context.Entry(movieInDb).CurrentValues.SetValues(movie);
             _context.SaveChanges();
 
             Response.StatusCode = 200;
             return new JsonResult(Ok(movie));
         }
 
-        // Get
+        /// <summary>
+        /// Gets a movie
+        /// </summary>
+        [ProducesResponseType(200, Type = typeof(Movie))]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
         [HttpGet]
         public JsonResult Get(int id)
         {
@@ -58,7 +99,13 @@ namespace TPWebServiceApiRestMovie.Controllers
             return new JsonResult(Ok(result));
         }
 
-        //Delete
+        /// <summary>
+        /// Deletes a movie
+        /// </summary>
+        /// <param name="id"></param>
+        [ProducesResponseType(200, Type = typeof(Movie))]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
         [HttpDelete]
         public JsonResult Delete(int id)
         {
