@@ -31,7 +31,7 @@ namespace TPWebServiceApiRestMovie.Controllers
         /// </remarks>
         /// 
         [ProducesResponseType(201, Type = typeof(Movie))]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         [Produces("application/json")]
         [HttpPost]
         public JsonResult Create(Movie movie)
