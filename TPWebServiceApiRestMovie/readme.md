@@ -18,7 +18,7 @@ Open appsettings.json and update your connection strings with your MySQL databas
       "Microsoft.AspNetCore": "Warning"
     }
   },
-  "AllowedHosts": "*"
+  "AllowedHosts": "*",
   "ConnectionStrings": {
     "mysql": "server=localhost;database=webserviceapi;user=root;password=" <--- change
   }
