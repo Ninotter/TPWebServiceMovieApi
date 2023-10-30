@@ -20,7 +20,7 @@ namespace TPWebServiceApiRestMovie.Models
         [Required]
         public DateTime ReleaseDate { get; set; }
 
-        public List<Person> Actors = new List<Person>();
-        public List<Person> Directors = new List<Person>();
+        public List<Person> Actors { get; set; } = new List<Person>();
+        public List<Person> Directors { get; set; } = new List<Person>();
     }
 }

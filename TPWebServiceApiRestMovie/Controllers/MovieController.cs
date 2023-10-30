@@ -18,7 +18,7 @@ namespace TPWebServiceApiRestMovie.Controllers
         {
             _context = context;
             options.MaxDepth = 0;
-            options.ReferenceHandler = ReferenceHandler.Preserve;
+            options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace TPWebServiceApiRestMovie.Controllers
                 .Where(p => p.Id == id)
                 .Include(p => p.Actors)
                 .Include(p => p.Directors)
-                .First();
+                .FirstOrDefault();
 
             if (result == null)
             {
