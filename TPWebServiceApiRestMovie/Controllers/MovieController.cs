@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml;
@@ -107,6 +108,36 @@ namespace TPWebServiceApiRestMovie.Controllers
             Response.StatusCode = 200;
             return new JsonResult(Ok(result).Value, options);
         }
+
+        /// <summary>
+        /// Gets all movies, with directors and actors as optional paramaters
+        /// </summary>
+        /// <param name="limit">20 or lower.</param>
+        /// <param name="idActor"></param>
+        /// <param name="idDirector"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(200, Type = typeof(Person))]
+        [ProducesResponseType(404)]
+        public JsonResult GetAll(int? idActor, int? idDirector,int limit = 20)
+        {
+            IQueryable<Movie> query = _context.Movies
+                .Include(p => p.Actors)
+                .Include(p => p.Directors);
+            if(idActor is not null)
+            {
+                query = query.Where(movie => movie.Actors.Any(actor => actor.Id == idActor));
+            }
+            if (idDirector is not null)
+            {
+                query = query.Where(movie => movie.Directors.Any(director => director.Id == idDirector));
+            }
+            List<Movie> result = query.Take(limit < 21 ? limit : 20).ToList();
+
+            Response.StatusCode = 200;
+            return new JsonResult(Ok(result).Value, options);
+        }
+
 
         /// <summary>
         /// Deletes a movie

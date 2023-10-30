@@ -52,12 +52,12 @@ namespace TPWebServiceApiRestMovie.Controllers
         /// <summary>
         /// Gets all actors
         /// </summary>
-        /// <param name="limit"></param>
+        /// <param name="limit">20 or lower.</param>
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(200, Type = typeof(Person))]
         [ProducesResponseType(404)]
-        public JsonResult GetAll(int limit)
+        public JsonResult GetAll(int limit = 20)
         {
             List<Person> result = _context.Persons
                 .Include(p => p.MoviesPlayed)
