@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using TPWebServiceApiRestMovie.Context;
+using TPWebServiceApiRestMovie.Models;
 
 namespace TPWebServiceApiRestMovie.Controllers
 {
@@ -14,8 +16,14 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context = context;
         }
 
-        // Get
+        /// <summary>
+        /// Gets a specific actor
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet]
+        [ProducesResponseType(200, Type = typeof(Person))]
+        [ProducesResponseType(400)]
         public JsonResult Get(int id)
         {
             var result = _context.Persons.Find(id);
