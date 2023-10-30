@@ -122,8 +122,6 @@ namespace TPWebServiceApiRestMovie.Controllers
                 return new JsonResult(NotFound());
             }
 
-            //int deletedMoviesCount = actorInDb.MoviesPlayed.RemoveAll(movie => movie.Id == movieInDb.Id); ;
-            //int deletedActorsCount = movieInDb.Actors.RemoveAll(actor => actor.Id == actorInDb.Id);
             actorInDb.MoviesPlayed.Remove(movieInDb);
             movieInDb.Actors.Remove(actorInDb);
 
