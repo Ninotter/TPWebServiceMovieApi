@@ -11,5 +11,19 @@ namespace TPWebServiceApiRestMovie.Context
         {
             
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Person>()
+            .HasMany(p => p.MoviesPlayed)
+            .WithMany(m => m.Actors)
+            .UsingEntity("MovieActors");
+
+            modelBuilder.Entity<Person>()
+                .HasMany(p => p.MoviesDirected)
+                .WithMany(m => m.Directors)
+                .UsingEntity("MovieDirectors");
+        }
     }
 }

@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Xml;
 using TPWebServiceApiRestMovie.Context;
 using TPWebServiceApiRestMovie.Models;
 
@@ -10,10 +13,12 @@ namespace TPWebServiceApiRestMovie.Controllers
     public class MovieController : ControllerBase
     {
         private readonly ApiContext _context;
-
+        private JsonSerializerOptions options = new JsonSerializerOptions();
         public MovieController(ApiContext context)
         {
             _context = context;
+            options.MaxDepth = 0;
+            options.ReferenceHandler = ReferenceHandler.Preserve;
         }
 
         /// <summary>
@@ -42,7 +47,7 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context.SaveChanges();
 
             Response.StatusCode = 201;
-            return new JsonResult(Ok(movie));
+            return new JsonResult(Ok(movie).Value, options);
         }
 
         /// <summary>
@@ -62,7 +67,7 @@ namespace TPWebServiceApiRestMovie.Controllers
         [ProducesResponseType(200, Type = typeof(Movie))]
         [ProducesResponseType(404)]
         [Produces("application/json")]
-        [HttpPost]
+        [HttpPatch]
         public JsonResult Edit(Movie movie)
         {
             var movieInDb = _context.Movies.Find(movie.Id);
@@ -76,7 +81,7 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context.SaveChanges();
 
             Response.StatusCode = 200;
-            return new JsonResult(Ok(movie));
+            return new JsonResult(Ok(movie).Value, options);
         }
 
         /// <summary>
@@ -88,15 +93,19 @@ namespace TPWebServiceApiRestMovie.Controllers
         [HttpGet]
         public JsonResult Get(int id)
         {
-            var result = _context.Movies.Find(id);
+            var result = _context.Movies
+                .Where(p => p.Id == id)
+                .Include(p => p.Actors)
+                .Include(p => p.Directors)
+                .First();
 
-            if(result == null)
+            if (result == null)
             {
                 Response.StatusCode = 404;
                 return new JsonResult(NotFound());
             }
             Response.StatusCode = 200;
-            return new JsonResult(Ok(result));
+            return new JsonResult(Ok(result).Value, options);
         }
 
         /// <summary>
@@ -120,7 +129,7 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context.SaveChanges();
 
             Response.StatusCode = 200;
-            return new JsonResult(Ok(result));
+            return new JsonResult(Ok(result).Value  , options);
         }
     }
 }

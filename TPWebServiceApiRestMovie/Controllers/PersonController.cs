@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TPWebServiceApiRestMovie.Context;
 using TPWebServiceApiRestMovie.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace TPWebServiceApiRestMovie.Controllers
 {
@@ -9,10 +12,13 @@ namespace TPWebServiceApiRestMovie.Controllers
     public class PersonController : ControllerBase
     {
         private readonly ApiContext _context;
+        private JsonSerializerOptions options = new JsonSerializerOptions();
 
         public PersonController(ApiContext context)
         {
             _context = context;
+            options.MaxDepth = 0;
+            options.ReferenceHandler = ReferenceHandler.Preserve;
         }
 
         /// <summary>
@@ -44,7 +50,8 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context.SaveChanges();
 
             Response.StatusCode = 201;
-            return new JsonResult(Ok(person));
+           
+            return new JsonResult(Ok(person).Value, options);
         }
 
         /// <summary>
@@ -57,14 +64,20 @@ namespace TPWebServiceApiRestMovie.Controllers
         [ProducesResponseType(404)]
         public JsonResult Get(int id)
         {
-            var result = _context.Persons.Find(id);
+            var result = _context.Persons
+                .Where(p => p.Id == id)
+                .Include(p => p.MoviesPlayed)
+                .Include(p => p.MoviesDirected)
+                .First();
 
             if (result == null)
             {
+                Response.StatusCode = 404;
                 return new JsonResult(NotFound());
             }
 
-            return new JsonResult(Ok(result));
+            Response.StatusCode = 200;
+            return new JsonResult(Ok(result).Value, options);
         }
 
         /// <summary>
@@ -99,7 +112,7 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context.SaveChanges();
 
             Response.StatusCode = 200;
-            return new JsonResult(Ok(person));
+            return new JsonResult(Ok(person).Value, options);
         }
 
 
@@ -124,7 +137,7 @@ namespace TPWebServiceApiRestMovie.Controllers
             _context.SaveChanges();
 
             Response.StatusCode = 200;
-            return new JsonResult(Ok(result));
+            return new JsonResult(Ok(result).Value, options);
         }
     }
 }

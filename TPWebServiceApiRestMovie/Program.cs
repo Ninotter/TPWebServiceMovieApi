@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using TPWebServiceApiRestMovie.Context;
+using Microsoft.Extensions.Configuration;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors();
 builder.Services.AddDbContext<ApiContext>(options =>
-    options.UseInMemoryDatabase("MovieDb"));
+    //options.UseInMemoryDatabase("MovieDb")
+    options.UseMySQL(builder.Configuration.GetConnectionString("mysql"))
+    );
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
