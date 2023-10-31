@@ -36,6 +36,4 @@ Once the migration has been correctly done, building the application :
 dotnet build -c Release
 ```
 Execute `bin\Release\net6.0\TPWebServiceApiRestMovie.exe` to start the server.
-Once the server is running, open a browser tab to the URL specified in the first line of the server command interface, and add `/swagger`
-to the end of the URL.
-E.g : https://localhost:5001/swagger .
+Once the server is running, open a browser tab to the URL https://localhost:5001/swagger .
