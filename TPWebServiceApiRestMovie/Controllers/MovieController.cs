@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using TPWebServiceApiRestMovie.Dossier;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Xml;
+using TPWebServiceApiRestMovie.Context;
 using TPWebServiceApiRestMovie.Models;
 
 namespace TPWebServiceApiRestMovie.Controllers
@@ -10,49 +14,138 @@ namespace TPWebServiceApiRestMovie.Controllers
     public class MovieController : ControllerBase
     {
         private readonly ApiContext _context;
-
+        private JsonSerializerOptions options = new JsonSerializerOptions();
         public MovieController(ApiContext context)
         {
             _context = context;
+            options.MaxDepth = 0;
+            options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         }
 
-        // Create/Edit
+        /// <summary>
+        /// Creates a movie
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///        "title": "Fight Club",
+        ///        "description": "an anonymous narrator finds escape from his hollow life through an underground fighting club where men find their true selves through shared pain",
+        ///        "releaseDate" : "1999-10-27T22:19:02.649Z"
+        ///     }
+        ///
+        /// </remarks>
+        /// 
+        [ProducesResponseType(201, Type = typeof(Movie))]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
         [HttpPost]
-        public JsonResult CreateEdit(Movie movie)
+        public JsonResult Create(Movie movie)
         {
-            if(movie.Id  == 0)
-            {
-                _context.Movies.Add(movie);
-            }
-            else
-            {
-                var movieInDb = _context.Movies.Find(movie.Id);
-
-                if(movieInDb == null) {
-                    return new JsonResult(NotFound());
-                }
-            }
-
+            //Generates a new ID if the user mistakenly specified one
+            movie.Id = 0;
+            _context.Movies.Add(movie);
             _context.SaveChanges();
 
-            return new JsonResult(Ok(movie));
+            Response.StatusCode = 201;
+            return new JsonResult(Ok(movie).Value, options);
         }
 
-        // Get
-        [HttpGet]
-        public JsonResult Get(int id)
+        /// <summary>
+        /// Edits a movie
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///        "id" : 1,
+        ///        "title": "Fight Club",
+        ///        "description": "an anonymous narrator finds escape from his hollow life through an underground fighting club where men find their true selves through shared pain",
+        ///        "releaseDate" : "1999-10-27T22:19:02.649Z"
+        ///     }
+        ///
+        /// </remarks>
+        [ProducesResponseType(200, Type = typeof(Movie))]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
+        [HttpPatch]
+        public JsonResult Edit(Movie movie)
         {
-            var result = _context.Movies.Find(id);
+            var movieInDb = _context.Movies.Find(movie.Id);
 
-            if(result == null)
-            {
+            if(movieInDb == null) {
+                Response.StatusCode = 404;
                 return new JsonResult(NotFound());
             }
 
-            return new JsonResult(Ok(result));
+            _context.Entry(movieInDb).CurrentValues.SetValues(movie);
+            _context.SaveChanges();
+
+            Response.StatusCode = 200;
+            return new JsonResult(Ok(movie).Value, options);
         }
 
-        //Delete
+        /// <summary>
+        /// Gets a movie
+        /// </summary>
+        [ProducesResponseType(200, Type = typeof(Movie))]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
+        [HttpGet]
+        public JsonResult Get(int id)
+        {
+            var result = _context.Movies
+                .Where(p => p.Id == id)
+                .Include(p => p.Actors)
+                .Include(p => p.Directors)
+                .FirstOrDefault();
+
+            if (result == null)
+            {
+                Response.StatusCode = 404;
+                return new JsonResult(NotFound());
+            }
+            Response.StatusCode = 200;
+            return new JsonResult(Ok(result).Value, options);
+        }
+
+        /// <summary>
+        /// Gets all movies, with directors and actors as optional paramaters
+        /// </summary>
+        /// <param name="limit">20 or lower.</param>
+        /// <param name="idActor"></param>
+        /// <param name="idDirector"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [ProducesResponseType(200, Type = typeof(Person))]
+        [ProducesResponseType(404)]
+        public JsonResult GetAll(int? idActor, int? idDirector,int limit = 20)
+        {
+            IQueryable<Movie> query = _context.Movies
+                .Include(p => p.Actors)
+                .Include(p => p.Directors);
+            if(idActor is not null)
+            {
+                query = query.Where(movie => movie.Actors.Any(actor => actor.Id == idActor));
+            }
+            if (idDirector is not null)
+            {
+                query = query.Where(movie => movie.Directors.Any(director => director.Id == idDirector));
+            }
+            List<Movie> result = query.Take(limit < 21 ? limit : 20).ToList();
+
+            Response.StatusCode = 200;
+            return new JsonResult(Ok(result).Value, options);
+        }
+
+
+        /// <summary>
+        /// Deletes a movie
+        /// </summary>
+        /// <param name="id"></param>
+        [ProducesResponseType(200, Type = typeof(Movie))]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
         [HttpDelete]
         public JsonResult Delete(int id)
         {
@@ -60,12 +153,14 @@ namespace TPWebServiceApiRestMovie.Controllers
 
             if (result == null)
             {
+                Response.StatusCode = 404;
                 return new JsonResult(NotFound());
             }
             _context.Movies.Remove(result);
             _context.SaveChanges();
 
-            return new JsonResult(Ok(result));
+            Response.StatusCode = 200;
+            return new JsonResult(Ok(result).Value  , options);
         }
     }
 }
